@@ -3,9 +3,11 @@
 
   .form-inputs
     = f.input :name
+    = f.association :product_type, as: :hidden
     = f.input :price
-    = f.input :product_type_id
-    = f.input :properties
+    = f.simple_fields_for :properties, OpenStruct.new(@product.properties) do |builder|
+      - for field in @product.product_type.fields
+        = render "products/fields/#{field.field_type}", field:field, f:builder
 
   .form-actions
     = f.button :submit
