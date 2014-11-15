@@ -1,0 +1,11 @@
+= simple_form_for(@product_field) do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :name
+    = f.input :field_type
+    = f.input :required
+    = f.association :product_type
+
+  .form-actions
+    = f.button :submit

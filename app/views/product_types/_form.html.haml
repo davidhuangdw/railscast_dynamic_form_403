@@ -1,0 +1,11 @@
+= simple_form_for(@product_type) do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :name
+    = f.simple_fields_for :fields do |builder|
+      = render 'field', f:builder
+    = link_to_add_fields('Add product field', f, :fields)
+
+  .form-actions
+    = f.button :submit

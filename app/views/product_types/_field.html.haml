@@ -1,0 +1,7 @@
+%fieldset
+  .form-inline.form-group
+    = f.input :field_type, collection: %w[text_field check_box], label:false, selected:'text_field'
+    = f.input :name, label: false, placeholder:'field_name'
+    = f.input :required, label: false, inline_label: 'required'
+    = f.input :_destroy, as: :hidden
+    = link_to 'remove', '#', class:'remove_fields'
