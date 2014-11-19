@@ -1,28 +1,52 @@
-== README
+### dynamic form
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+        # add more field_types:e.g. shirt_size
+        # product_types/_field.html.haml:
+        %fieldset
+          .form-inline.form-group
+            = f.input :field_type, collection: %w[text_field check_box shirt_sizes], label:false, selected:'text_field'
+        # products/fields/_shirt_sizes.html.haml
+        .field
+          = f.input field.name, as: :check_boxes,collection:%w[S M L XL]
 
-Things you may want to cover:
+        # validate
+        class Product
+          validate :validate_properties
 
-* Ruby version
+          def validate_properties
+            product_type.fields.each do |field|
+              if field.required && properties[field.name].blank?
+                errors.add field.name, 'must not be blank'
+              end
+            end
+          end
+        end
 
-* System dependencies
+        # dynamic_form for product.properties
+        # product.rb
+        class Product
+          serialize :properties, Hash       # so, @product.properties will be Hash instance, yet saved into database as its original type(text)
+        end
+        # strong params for passing whole hash
+        def product_params
+          params.require(:product).permit(:name, :price, :product_type_id).tap do |whitelisted_params|
+            whitelisted_params[:properties] = params[:product][:properties] # allow whole hash
+          end
+        end
+        # views/products/new.html.haml
+        = simple_form_for @product
+          = f.input :name
+          = f.input :price
+          = f.association product_type, as: :hidden
+          = f.simple_fields_for :properties, OpenStruct(@product.properties) do |builder|  # need make it an object
+            - for field in @product.product_type.fields
+              = render "products/fields/#{field}", field:field, f:|builder|
+        # views/products/_check_box.html.haml
+        = f.input field.name, as: :boolean, label: false, inline_label: field.name
 
-* Configuration
+        # nested_form for has_many model -- product_type.product_fields
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+        # models:
+        rails g scaffold product_type name
+        rails g scaffold product_field name field_type required:boolean product_type:belongs_to
+        rails g scaffold product name price:decimal product_type:belongs_to properties:text
